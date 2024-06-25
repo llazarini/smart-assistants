@@ -1,0 +1,14 @@
+{
+	"name": "smart-assistants",
+	"version": "0.0.1",
+	"description": "Build Smart Assistants with Memory, Storage and much more. Built with TS.",
+	"main": "index.js",
+	"scripts": {
+		"test": "tsc --outDir ./dist && cp -R ./src/assets ./dist && node ./dist/test.js"
+	},
+	"author": "Leonardo Lazarini <llazarini2@gmail.com>",
+	"license": "ISC",
+	"dependencies": {
+		"openai": "^4.52.0"
+	}
+}
