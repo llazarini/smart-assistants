@@ -4,11 +4,24 @@
 	"description": "Build Smart Assistants with Memory, Storage and much more. Built with TS.",
 	"main": "index.js",
 	"scripts": {
-		"test": "tsc --outDir ./dist && cp -R ./src/assets ./dist && node ./dist/test.js"
+		"test": "npx tsx tests/run.ts"
 	},
 	"author": "Leonardo Lazarini <llazarini2@gmail.com>",
 	"license": "ISC",
 	"dependencies": {
-		"openai": "^4.52.0"
+		"dotenv": "^16.4.5",
+		"openai": "^4.52.0",
+		"pino": "^9.2.0",
+		"pino-pretty": "^11.2.1",
+		"uuid": "^10.0.0"
+	},
+	"type": "module",
+	"devDependencies": {
+		"@japa/assert": "^2.0.0-2",
+		"@japa/expect-type": "^2.0.0-1",
+		"@japa/file-system": "^2.0.0-2",
+		"@japa/runner": "^3.0.0-9",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.5.2"
 	}
 }
