@@ -105,9 +105,9 @@ export class Assistant {
 		const run = new Run({ runnables: [runnable] });
 		const processedRun = await this.processRun(run);
 
-		const lastRunnable = processedRun.runnables
-			.reverse()
-			.find(runnable => runnable.message?.role == 'assistant');
+		const lastRunnable = processedRun.runnables.findLast(
+			runnable => runnable.message?.role == 'assistant'
+		);
 
 		return lastRunnable?.message?.content || '';
 	}

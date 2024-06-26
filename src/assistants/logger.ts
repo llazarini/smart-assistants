@@ -1,4 +1,4 @@
-import pino from 'pino';
+import * as pino from 'pino';
 
 export class AssistantLogger {
 	level: 'info' | 'debug' | 'silent';
@@ -16,7 +16,7 @@ export class PinoLogger extends AssistantLogger {
 	constructor(level: 'info' | 'debug' | 'silent') {
 		super(level);
 
-		this.logger = pino.default({
+		this.logger = pino.pino({
 			level: this.level,
 			transport: {
 				target: 'pino-pretty'
