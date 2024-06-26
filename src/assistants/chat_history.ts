@@ -28,32 +28,23 @@ export class ChatHistory {
 	constructor(data?: { chatHistoryId: string }) {
 		this.chatHistoryId = data?.chatHistoryId || uuidv4();
 		this.runsHistory = [];
-		this.loadHistory();
 	}
 
-	loadHistory() {
+	async getHistory(): Promise<Run[]> {
 		throw new Error('Not implemented');
 	}
 
-	getHistory(): Run[] {
-		throw new Error('Not implemented');
-	}
-
-	saveRun(run: Run) {
+	async saveRun(run: Run): Promise<void> {
 		throw new Error('Not implemented');
 	}
 }
 
 export class MemoryChatHistory extends ChatHistory {
-	loadHistory() {
-		// Memory
-	}
-
-	getHistory(): Run[] {
+	async getHistory(): Promise<Run[]> {
 		return this.runsHistory;
 	}
 
-	saveRun(run: Run) {
+	async saveRun(run: Run) {
 		const existingRunI = this.runsHistory.findIndex(
 			item => item.id === run.id
 		);

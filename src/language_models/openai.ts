@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { ChatCompletionTool } from 'openai/src/resources/chat/completions';
 import { LanguageModel, Message, Run, Runnable, ToolCall } from '..';
+import { ChatCompletionMessageParam } from 'openai/resources';
 
 export class OpenAILanguageModel extends LanguageModel {
 	model: 'gpt-3.5-turbo' | 'gpt-4o' = 'gpt-3.5-turbo';
@@ -136,11 +137,11 @@ export class OpenAILanguageModel extends LanguageModel {
 
 		const userWaitingRunnable = this.getUserWaitingRunnable(this.run);
 
-		const messages = [
+		const messages: object[] = [
 			{ role: 'system', content: this.formattedInstructions },
 			...(await this.getChatHistoryMessages()),
 			{ role: 'user', content: userWaitingRunnable.message.content }
-		];
+		] as ChatCompletionMessageParam[];
 
 		this.assistant.logger.log(
 			'info',
@@ -149,6 +150,7 @@ export class OpenAILanguageModel extends LanguageModel {
 
 		const chatCompletion = await this.client.chat.completions.create({
 			model: this.model,
+			// @ts-ignore
 			messages,
 			tools
 		});

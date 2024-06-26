@@ -1,7 +1,7 @@
-export * from './assistants/assistant';
-export * from './assistants/logger';
-export * from './assistants/tool';
-export * from './assistants/chat_history';
+export * from './assistants/assistant.js';
+export * from './assistants/logger.js';
+export * from './assistants/tool.js';
+export * from './assistants/chat_history.js';
 
-export * from './language_models/language_model';
-export * from './language_models/openai';
+export * from './language_models/language_model.js';
+export * from './language_models/openai.js';

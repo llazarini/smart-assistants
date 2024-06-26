@@ -3,6 +3,7 @@
 Create Smart LLM Assistants with Memory, Function calling and more to come.
 
 *The library and documentation is still in development*
+*I don't recommend using it in production yet*
 
 #### Installation
 

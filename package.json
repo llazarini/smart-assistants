@@ -1,10 +1,10 @@
 {
 	"name": "smart-assistants",
-	"version": "0.0.1",
+	"version": "0.0.2-dev",
 	"description": "Build Smart Assistants with Memory, Storage and much more. Built with TS.",
-	"main": "index.js",
 	"scripts": {
-		"test": "npx tsx tests/run.ts"
+		"test": "npx tsx tests/run.ts",
+		"build": "tsc --module es2022"
 	},
 	"author": "Leonardo Lazarini <llazarini2@gmail.com>",
 	"license": "ISC",
@@ -23,5 +23,10 @@
 		"@japa/runner": "^3.0.0-9",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.5.2"
-	}
+	},
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"/dist"
+	]
 }
