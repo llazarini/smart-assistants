@@ -96,9 +96,6 @@ export class Assistant {
 	}
 
 	async respond(message: string) {
-		this.languageModel.setAssistant(this);
-		this.languageModel.setInstructions(this.getInstructions());
-
 		const runnable = new Runnable({
 			message: new Message({ content: message, role: 'user' })
 		});
@@ -113,6 +110,9 @@ export class Assistant {
 	}
 
 	async processRun(run: Run) {
+		this.languageModel.setAssistant(this);
+		this.languageModel.setInstructions(this.getInstructions());
+
 		if (this.chatHistory) {
 			this.chatHistory.saveRun(run);
 		}

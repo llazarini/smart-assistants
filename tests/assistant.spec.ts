@@ -29,12 +29,41 @@ test.group('Assistant', () => {
 				'You are funny',
 				'You are only allowed to answer in english or portuguese.'
 			],
+			chatHistory: memoryChatHistory
+		});
+		console.log(await assistant.respond('Hey How are you?'));
+		console.log(await assistant.respond('Please call me Leonardo'));
+		console.log(await assistant.respond('What is my name?'));
+	});
+
+	test('creating an assistant with tools', async ({ assert }) => {
+		const memoryChatHistory = new MemoryChatHistory();
+		const assistant = new Assistant({
+			languageModel: new OpenAILanguageModel({
+				model: 'gpt-3.5-turbo',
+				apiKey: process.env.OPENAI_API_KEY
+			}),
+			description:
+				'You are an assistant that help people adding products to the shopping cart',
+			instructions: [
+				'You are funny',
+				'You are only allowed to answer in english or portuguese.'
+			],
 			tools: [new AddToChart()],
 			chatHistory: memoryChatHistory
 		});
-		console.log(await assistant.respond('Oi tudo bem?'));
 		console.log(
-			await assistant.respond('Gostaria de saber qual o seu nome')
+			await assistant.respond(
+				'Can you add a banana to the shopping cart?'
+			)
+		);
+		console.log(
+			await assistant.respond(
+				'Can you add an apple and a banana to the shopping cart?'
+			)
+		);
+		console.log(
+			await assistant.respond('What I have in my shopping cart?')
 		);
 	});
 });

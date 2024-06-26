@@ -115,6 +115,12 @@ export class OpenAILanguageModel extends LanguageModel {
 		const messages = history
 			.map((run: Run) => {
 				return run.runnables.map(runnable => {
+					if (!runnable.message) {
+						return {
+							role: 'assistant',
+							content: `Running tool ${runnable.toolCall?.tool.name}. Tool response: ${runnable.toolCall?.toolReturn}`
+						};
+					}
 					return {
 						role: runnable.message?.role,
 						content: runnable.message?.content
@@ -170,7 +176,7 @@ export class OpenAILanguageModel extends LanguageModel {
 			model: this.model,
 			// @ts-ignore
 			messages,
-			tools
+			...(tools?.length ? { tools } : null)
 		});
 		userWaitingRunnable.setStatus('processed');
 
