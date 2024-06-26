@@ -1,12 +1,16 @@
 import OpenAI from 'openai';
-import { ChatCompletionTool } from 'openai/src/resources/chat/completions';
-import { LanguageModel, Message, Run, Runnable, ToolCall } from '..';
-import { ChatCompletionMessageParam } from 'openai/resources';
+import type {
+	ChatCompletionMessage,
+	ChatCompletionTool
+} from 'openai/src/resources/chat/completions.js';
+import { LanguageModel, Run, Runnable } from './language_model.js';
+import { Message } from '../assistants/chat_history.js';
+import { Tool, ToolCall } from '../assistants/tool.js';
 
 export class OpenAILanguageModel extends LanguageModel {
 	model: 'gpt-3.5-turbo' | 'gpt-4o' = 'gpt-3.5-turbo';
 	client: OpenAI;
-	run: Run;
+	run?: Run;
 
 	constructor({
 		model,
@@ -25,6 +29,9 @@ export class OpenAILanguageModel extends LanguageModel {
 
 	async processResponseFromChatGpt(choice: OpenAI.ChatCompletion.Choice) {
 		const createRunnables = () => {
+			if (!this.run) {
+				throw new Error('The run was not defined.');
+			}
 			if (choice.message.content) {
 				this.run.runnables.push(
 					new Runnable({
@@ -38,12 +45,17 @@ export class OpenAILanguageModel extends LanguageModel {
 			}
 			if (choice.message.tool_calls?.length) {
 				for (let chatGptToolCall of choice.message.tool_calls) {
-					const tool = this.assistant.getTool(
+					const tool = this.assistant?.getTool(
 						chatGptToolCall.function.name
 					);
 					const properties = JSON.parse(
 						chatGptToolCall.function.arguments
 					);
+					if (!tool) {
+						throw new Error(
+							`The tool ${chatGptToolCall.function.name} was not found when searching into the assistant.`
+						);
+					}
 					this.run.runnables.push(
 						new Runnable({
 							toolCall: new ToolCall({
@@ -58,23 +70,26 @@ export class OpenAILanguageModel extends LanguageModel {
 		};
 
 		const processRunnables = async () => {
+			if (!this.run) {
+				throw new Error('The run was not defined.');
+			}
 			for (let runnable of this.run.runnables) {
 				if (runnable.status == 'processed') {
 					continue;
 				}
 				try {
-					this.assistant.logger.log(
+					this.assistant?.logger.log(
 						'info',
 						`Processing tool call ${
-							runnable.toolCall.tool.name
+							runnable.toolCall?.tool.name
 						} with parameters ${JSON.stringify(
-							runnable.toolCall.tool.parameters
+							runnable.toolCall?.tool.parameters
 						)} `
 					);
 					await runnable.process();
 					runnable.setStatus('processed');
 				} catch (error) {
-					this.assistant.logger.log(
+					this.assistant?.logger.log(
 						'error',
 						`Error when trying to process tool call`
 					);
@@ -82,14 +97,17 @@ export class OpenAILanguageModel extends LanguageModel {
 			}
 		};
 
-		this.assistant.logger.log('info', `Processing response`);
+		if (!this.run) {
+			this.run = new Run({ runnables: [] });
+		}
+		this.assistant?.logger.log('info', `Processing response`);
 
 		createRunnables();
 		await processRunnables();
 	}
 
 	async getChatHistoryMessages(): Promise<object[]> {
-		if (!this.assistant.chatHistory) {
+		if (!this.assistant?.chatHistory) {
 			return [];
 		}
 		const history = await this.assistant.chatHistory.getHistory();
@@ -110,7 +128,7 @@ export class OpenAILanguageModel extends LanguageModel {
 
 	async proccess(run: Run): Promise<Run> {
 		this.run = run;
-		const tools = this.assistant.tools.map(tool => {
+		const tools = this.assistant?.tools.map((tool: Tool) => {
 			const properties = tool.parameters.map(parameter => {
 				return [
 					[parameter.name],
@@ -140,10 +158,10 @@ export class OpenAILanguageModel extends LanguageModel {
 		const messages: object[] = [
 			{ role: 'system', content: this.formattedInstructions },
 			...(await this.getChatHistoryMessages()),
-			{ role: 'user', content: userWaitingRunnable.message.content }
-		] as ChatCompletionMessageParam[];
+			{ role: 'user', content: userWaitingRunnable?.message?.content }
+		] as ChatCompletionMessage[];
 
-		this.assistant.logger.log(
+		this.assistant?.logger.log(
 			'info',
 			'Getting chat completion from OpenAI'
 		);

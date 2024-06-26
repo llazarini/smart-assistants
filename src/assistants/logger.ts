@@ -5,7 +5,7 @@ export class AssistantLogger {
 	constructor(level: 'info' | 'debug' | 'silent') {
 		this.level = level;
 	}
-	log(level: 'info' | 'debug' | 'error', message: any) {
+	log(_level: 'info' | 'debug' | 'error', _message: any) {
 		throw new Error('Not implemented');
 	}
 }
@@ -16,7 +16,7 @@ export class PinoLogger extends AssistantLogger {
 	constructor(level: 'info' | 'debug' | 'silent') {
 		super(level);
 
-		this.logger = pino({
+		this.logger = pino.default({
 			level: this.level,
 			transport: {
 				target: 'pino-pretty'

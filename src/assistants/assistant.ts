@@ -1,14 +1,14 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'url';
-import { AssistantLogger, PinoLogger } from './logger';
-import { Tool } from './tool';
+import { AssistantLogger, PinoLogger } from './logger.js';
+import { Tool } from './tool.js';
 import {
 	LanguageModel,
 	Run,
 	Runnable
-} from '../language_models/language_model';
-import { ChatHistory, Message } from './chat_history';
+} from '../language_models/language_model.js';
+import { ChatHistory, Message } from './chat_history.js';
 
 export class Assistant {
 	languageModel: LanguageModel;
@@ -18,7 +18,7 @@ export class Assistant {
 	debug: boolean = false;
 	language: 'en' | 'pt' = 'en';
 	logger: AssistantLogger;
-	chatHistory: ChatHistory;
+	chatHistory?: ChatHistory;
 
 	constructor({
 		languageModel,
@@ -107,9 +107,9 @@ export class Assistant {
 
 		const lastRunnable = processedRun.runnables
 			.reverse()
-			.find(runnable => runnable.message.role == 'assistant');
+			.find(runnable => runnable.message?.role == 'assistant');
 
-		return lastRunnable.message.content;
+		return lastRunnable?.message?.content || '';
 	}
 
 	async processRun(run: Run) {

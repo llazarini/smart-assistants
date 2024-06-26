@@ -15,13 +15,13 @@ export class ToolParameter {
 }
 
 export class Tool {
-	name: string;
-	description: string;
+	name: string = '';
+	description: string = '';
 	parameters: ToolParameter[] = [];
 
 	constructor() {}
 
-	run(parameters: any): any {
+	run(_parameters: any): any {
 		throw new Error('Not implemented');
 	}
 }

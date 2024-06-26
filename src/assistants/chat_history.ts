@@ -1,8 +1,8 @@
-import { Run } from '../language_models/language_model';
 import { v4 as uuidv4 } from 'uuid';
+import { Run } from '../language_models/language_model.js';
 
 export class Message {
-	id: string;
+	id?: string;
 	role: 'assistant' | 'user' | 'system';
 	content: string;
 
@@ -34,7 +34,7 @@ export class ChatHistory {
 		throw new Error('Not implemented');
 	}
 
-	async saveRun(run: Run): Promise<void> {
+	async saveRun(_run: Run): Promise<void> {
 		throw new Error('Not implemented');
 	}
 }

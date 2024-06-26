@@ -1,16 +1,18 @@
 import { config as loadEnvironment } from 'dotenv';
-import { Assistant, Message, ToolCall } from '..';
 import { v4 as uuidv4 } from 'uuid';
+import { Assistant } from '../assistants/assistant.js';
+import { Message } from '../assistants/chat_history.js';
+import { ToolCall } from '../assistants/tool.js';
 
 export class LanguageModel {
-	assistant: Assistant;
-	formattedInstructions: string;
+	assistant?: Assistant;
+	formattedInstructions: string = '';
 
 	constructor() {
 		loadEnvironment();
 	}
 
-	async proccess(run: Run): Promise<Run> {
+	async proccess(_run: Run): Promise<Run> {
 		throw new Error('Not implemented.');
 	}
 
@@ -66,7 +68,18 @@ export class Runnable {
 			this.setStatus('processed');
 			return true;
 		}
-		await this.toolCall.process();
+		if (!this.toolCall) {
+			throw new Error(
+				'The runnable is not either a message and a tool call.'
+			);
+		}
+		try {
+			await this.toolCall.process();
+			return true;
+		} catch (error) {
+			console.error(error);
+			return false;
+		}
 	}
 }
 
