@@ -48,6 +48,7 @@ export class Assistant {
 		this.logger = new PinoLogger(logLevel);
 		this.logger.level = logLevel;
 		this.chatHistory = chatHistory;
+		this.chatHistory?.setAssistant(this);
 	}
 
 	getTool(toolName: string): Tool {

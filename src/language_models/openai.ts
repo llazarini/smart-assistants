@@ -118,10 +118,7 @@ export class OpenAILanguageModel extends LanguageModel {
 				return [];
 			}
 			const messages = [];
-			const toolCallsThatExpectResponse =
-				runnable.toolCalls; /*runnable.toolCalls.filter(
-				item => item.tool.responseStrategy === 'answer'
-			);*/
+			const toolCallsThatExpectResponse = runnable.toolCalls;
 			const toolCalls = toolCallsThatExpectResponse.map(item => {
 				return {
 					id: item.toolCallId,
@@ -146,12 +143,6 @@ export class OpenAILanguageModel extends LanguageModel {
 			return messages;
 		};
 
-		const getToolCallsNotExpectResponse = (
-			runnable: Runnable
-		): object[] => {
-			throw new Error('Not implemented.');
-		};
-
 		// Get history from previus runs
 		const runsHistory = (
 			await this.assistant.chatHistory.getHistory()
@@ -165,9 +156,6 @@ export class OpenAILanguageModel extends LanguageModel {
 						messages = messages.concat(
 							getToolCallsExpectResponse(runnable)
 						);
-						//messages.concat(
-						//	getToolCallsNotExpectResponse(runnable)
-						//);
 						return;
 					}
 
