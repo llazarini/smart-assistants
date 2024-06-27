@@ -1,6 +1,6 @@
 {
 	"name": "smart-assistants",
-	"version": "0.0.7-dev",
+	"version": "0.0.9-dev",
 	"description": "Build Smart Assistants with Memory, Storage and much more. Built with TS.",
 	"scripts": {
 		"test": "npx tsx tests/run.ts",

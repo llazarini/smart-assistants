@@ -46,6 +46,7 @@ export class Assistant {
 				? instructions
 				: instructions?.split('\n') || [];
 		this.logger = new PinoLogger(logLevel);
+		this.logger.level = logLevel;
 		this.chatHistory = chatHistory;
 	}
 
@@ -103,7 +104,8 @@ export class Assistant {
 		const processedRun = await this.processRun(run);
 
 		const lastRunnable = processedRun.runnables.findLast(
-			runnable => runnable.message?.role == 'assistant'
+			runnable =>
+				runnable.message && runnable.message?.role == 'assistant'
 		);
 
 		return lastRunnable?.message?.content || '';
@@ -112,10 +114,6 @@ export class Assistant {
 	async processRun(run: Run) {
 		this.languageModel.setAssistant(this);
 		this.languageModel.setInstructions(this.getInstructions());
-
-		if (this.chatHistory) {
-			this.chatHistory.saveRun(run);
-		}
 
 		run = await this.languageModel.proccess(run);
 

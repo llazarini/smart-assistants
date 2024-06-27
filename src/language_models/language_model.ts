@@ -7,6 +7,7 @@ import { ToolCall } from '../assistants/tool.js';
 export class LanguageModel {
 	assistant?: Assistant;
 	formattedInstructions: string = '';
+	maxDepthCalls: number = 10;
 
 	constructor() {
 		loadEnvironment();
@@ -37,21 +38,22 @@ export class LanguageModel {
 
 export class Runnable {
 	message?: Message;
-	toolCall?: ToolCall;
-	status: 'waiting' | 'processed' | 'errored' = 'waiting';
+	toolCalls?: ToolCall[];
+	status: 'waiting' | 'waiting_response' | 'processed' | 'errored' =
+		'waiting';
 
 	constructor({
 		message,
-		toolCall,
+		toolCalls,
 		status = 'waiting'
 	}: {
 		message?: Message;
-		toolCall?: ToolCall;
+		toolCalls?: ToolCall[];
 		status?: 'waiting' | 'processed';
 	}) {
 		this.message = message;
-		this.toolCall = toolCall;
-		if (!this.message && !this.toolCall) {
+		this.toolCalls = toolCalls || [];
+		if (!this.message && !this.toolCalls) {
 			throw new Error(
 				'The Runnable object must have either a message or a toolCall'
 			);
@@ -59,27 +61,55 @@ export class Runnable {
 		this.status = status;
 	}
 
-	setStatus(status: 'processed' | 'errored') {
+	setStatus(status: 'processed' | 'errored' | 'waiting_response') {
 		this.status = status;
 	}
 
+	/**
+	 * Process the runnable.
+	 * If it's an message don't have anything to process.
+	 * If it's a tool call, call the function and set the status
+	 * @returns
+	 */
 	async process(): Promise<boolean> {
 		if (this.message) {
 			this.setStatus('processed');
 			return true;
 		}
-		if (!this.toolCall) {
+		if (!this.toolCalls?.length) {
 			throw new Error(
 				'The runnable is not either a message and a tool call.'
 			);
 		}
-		try {
-			await this.toolCall.process();
-			return true;
-		} catch (error) {
-			console.error(error);
+		const processes = await Promise.allSettled(
+			this.toolCalls.map(toolCall => {
+				this.processToolCall(toolCall);
+			})
+		);
+
+		// Check if it have any issue
+		if (
+			processes.filter(process => process.status !== 'fulfilled').length
+		) {
+			this.setStatus('errored');
 			return false;
 		}
+
+		// Check if strategy is to answer or if it's already processed
+		if (
+			this.toolCalls.filter(
+				toolCall => toolCall.tool.responseStrategy === 'answer'
+			).length
+		) {
+			this.setStatus('waiting_response');
+		} else {
+			this.setStatus('processed');
+		}
+		return true;
+	}
+
+	async processToolCall(toolCall: ToolCall) {
+		await toolCall.process();
 	}
 }
 
@@ -95,5 +125,12 @@ export class Run {
 
 	setStatus(status: 'waiting' | 'processed' | 'errored') {
 		this.status = status;
+	}
+
+	hasPendingRunnables(): boolean {
+		return !!this.runnables.find(
+			runnable =>
+				runnable.status !== 'processed' && runnable.status !== 'errored'
+		);
 	}
 }

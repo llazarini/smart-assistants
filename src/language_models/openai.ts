@@ -44,6 +44,7 @@ export class OpenAILanguageModel extends LanguageModel {
 				);
 			}
 			if (choice.message.tool_calls?.length) {
+				const toolCalls = [];
 				for (let chatGptToolCall of choice.message.tool_calls) {
 					const tool = this.assistant?.getTool(
 						chatGptToolCall.function.name
@@ -56,16 +57,20 @@ export class OpenAILanguageModel extends LanguageModel {
 							`The tool ${chatGptToolCall.function.name} was not found when searching into the assistant.`
 						);
 					}
-					this.run.runnables.push(
-						new Runnable({
-							toolCall: new ToolCall({
-								tool: tool,
-								properties: properties
-							}),
-							status: 'waiting'
+					toolCalls.push(
+						new ToolCall({
+							toolCallId: chatGptToolCall.id,
+							tool: tool,
+							properties: properties
 						})
 					);
 				}
+				this.run.runnables.push(
+					new Runnable({
+						toolCalls,
+						status: 'waiting'
+					})
+				);
 			}
 		};
 
@@ -74,20 +79,16 @@ export class OpenAILanguageModel extends LanguageModel {
 				throw new Error('The run was not defined.');
 			}
 			for (let runnable of this.run.runnables) {
-				if (runnable.status == 'processed') {
+				if (
+					runnable.status == 'processed' ||
+					runnable.status == 'errored'
+				) {
 					continue;
 				}
 				try {
-					this.assistant?.logger.log(
-						'info',
-						`Processing tool call ${
-							runnable.toolCall?.tool.name
-						} with parameters ${JSON.stringify(
-							runnable.toolCall?.tool.parameters
-						)} `
-					);
+					this.assistant?.logger.log('info', `Processing tool calls`);
+					this.assistant?.logger.log('debug', runnable.toolCalls);
 					await runnable.process();
-					runnable.setStatus('processed');
 				} catch (error) {
 					this.assistant?.logger.log(
 						'error',
@@ -101,30 +102,79 @@ export class OpenAILanguageModel extends LanguageModel {
 			this.run = new Run({ runnables: [] });
 		}
 		this.assistant?.logger.log('info', `Processing response`);
+		this.assistant?.logger.log('debug', choice);
 
 		createRunnables();
 		await processRunnables();
 	}
 
-	async getChatHistoryMessages(): Promise<object[]> {
+	async getChatHistoryMessages(run: Run): Promise<object[]> {
 		if (!this.assistant?.chatHistory) {
 			return [];
 		}
-		const history = await this.assistant.chatHistory.getHistory();
 
-		const messages = history
+		const getToolCallsExpectResponse = (runnable: Runnable): object[] => {
+			if (!runnable.toolCalls) {
+				return [];
+			}
+			const messages = [];
+			const toolCallsThatExpectResponse =
+				runnable.toolCalls; /*runnable.toolCalls.filter(
+				item => item.tool.responseStrategy === 'answer'
+			);*/
+			const toolCalls = toolCallsThatExpectResponse.map(item => {
+				return {
+					id: item.toolCallId,
+					type: 'function',
+					function: {
+						name: item.tool.name,
+						arguments: JSON.stringify(item.properties)
+					}
+				};
+			});
+			messages.push({
+				role: 'assistant',
+				tool_calls: toolCalls
+			});
+			toolCallsThatExpectResponse.map(item => {
+				messages.push({
+					role: 'tool',
+					tool_call_id: item.toolCallId,
+					content: item.toolReturn
+				});
+			});
+			return messages;
+		};
+
+		const getToolCallsNotExpectResponse = (
+			runnable: Runnable
+		): object[] => {
+			throw new Error('Not implemented.');
+		};
+
+		// Get history from previus runs
+		const runsHistory = (
+			await this.assistant.chatHistory.getHistory()
+		).filter(history => history.id !== run.id);
+		runsHistory.push(run);
+		let messages: object[] = [];
+		runsHistory
 			.map((run: Run) => {
 				return run.runnables.map(runnable => {
-					if (!runnable.message) {
-						return {
-							role: 'assistant',
-							content: `Running tool ${runnable.toolCall?.tool.name}. Tool response: ${runnable.toolCall?.toolReturn}`
-						};
+					if (runnable.toolCalls?.length) {
+						messages = messages.concat(
+							getToolCallsExpectResponse(runnable)
+						);
+						//messages.concat(
+						//	getToolCallsNotExpectResponse(runnable)
+						//);
+						return;
 					}
-					return {
+
+					messages.push({
 						role: runnable.message?.role,
 						content: runnable.message?.content
-					};
+					});
 				});
 			})
 			.flat();
@@ -132,7 +182,7 @@ export class OpenAILanguageModel extends LanguageModel {
 		return messages;
 	}
 
-	async proccess(run: Run): Promise<Run> {
+	async processRun(run: Run): Promise<Run> {
 		this.run = run;
 		const tools = this.assistant?.tools.map((tool: Tool) => {
 			const properties = tool.parameters.map(parameter => {
@@ -145,6 +195,14 @@ export class OpenAILanguageModel extends LanguageModel {
 				];
 			});
 
+			const requiredParameters = tool.parameters
+				.map(parameter => {
+					if (parameter.required) {
+						return parameter.name;
+					}
+				})
+				.filter(required => required);
+
 			return {
 				type: 'function',
 				function: {
@@ -153,24 +211,22 @@ export class OpenAILanguageModel extends LanguageModel {
 					parameters: {
 						type: 'object',
 						properties: Object.fromEntries(properties),
-						required: []
+						required: requiredParameters
 					}
 				}
 			} as ChatCompletionTool;
 		});
 
-		const userWaitingRunnable = this.getUserWaitingRunnable(this.run);
-
 		const messages: object[] = [
 			{ role: 'system', content: this.formattedInstructions },
-			...(await this.getChatHistoryMessages()),
-			{ role: 'user', content: userWaitingRunnable?.message?.content }
+			...(await this.getChatHistoryMessages(run))
 		] as ChatCompletionMessage[];
 
 		this.assistant?.logger.log(
 			'info',
 			'Getting chat completion from OpenAI'
 		);
+		this.assistant?.logger.log('debug', messages);
 
 		const chatCompletion = await this.client.chat.completions.create({
 			model: this.model,
@@ -178,11 +234,28 @@ export class OpenAILanguageModel extends LanguageModel {
 			messages,
 			...(tools?.length ? { tools } : null)
 		});
-		userWaitingRunnable.setStatus('processed');
+
+		this.run.runnables.map(runnable => runnable.setStatus('processed'));
 
 		await this.processResponseFromChatGpt(chatCompletion.choices[0]);
 		this.run.setStatus('processed');
 
 		return this.run;
+	}
+
+	async proccess(run: Run): Promise<Run> {
+		let calls = 0;
+		do {
+			run = await this.processRun(run);
+			this.assistant?.logger.log(
+				'info',
+				`Run processed, checking if has any pending runnables for it.`
+			);
+			this.assistant?.logger.log('debug', run.runnables);
+
+			calls += 1;
+		} while (calls <= this.maxDepthCalls && run.hasPendingRunnables());
+
+		return run;
 	}
 }
