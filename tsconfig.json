@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"moduleResolution": "node",
+		"target": "ESNext",
+		"module": "ESNext",
+		"lib": ["ESNext"],
+		"strict": true,
+		"sourceMap": true,
+		"declaration": true,
+		"allowSyntheticDefaultImports": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+
+		"declarationDir": "dist/types",
+		"outDir": "dist/lib",
+		"typeRoots": ["node_modules/@types"]
+	},
+	"include": ["src"]
+}
