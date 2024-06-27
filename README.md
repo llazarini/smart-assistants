@@ -7,7 +7,10 @@ Create Smart LLM Assistants with Memory, Function calling and more to come.
 
 #### Installation
 
-@todo
+```
+npm install smart-assistants
+// or yarn add smart-assistants
+```
 
 #### Get started
 
@@ -28,9 +31,9 @@ const assistant = new Assistant({
 	tools: [new AddToChart()],
 	chatHistory: new MemoryChatHistory()
 });
-console.log(await assistant.respond('Oi tudo bem?'));
+console.log(await assistant.respond('Hey, how are you?'));
 console.log(
-	await assistant.respond('Gostaria de saber qual o seu nome')
+	await assistant.respond('I would like to know your name')
 );
 ```
 
