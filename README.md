@@ -17,6 +17,8 @@ npm install smart-assistants
 Basic usage
 
 ```typescript
+import { Assistant, OpenAILanguageModel } from 'smart-assistants'
+
 const assistant = new Assistant({
 	languageModel: new OpenAILanguageModel({
 		model: 'gpt-3.5-turbo',
@@ -28,8 +30,6 @@ const assistant = new Assistant({
 		'You are funny',
 		'You are only allowed to answer in english or portuguese.'
 	],
-	tools: [new AddToChart()],
-	chatHistory: new MemoryChatHistory()
 });
 console.log(await assistant.respond('Hey, how are you?'));
 console.log(
