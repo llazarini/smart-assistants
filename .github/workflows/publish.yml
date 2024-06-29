@@ -1,4 +1,4 @@
-name: Production Build and Deployment
+name: Push to dev
 
 on:
     push:
@@ -29,6 +29,12 @@ jobs:
             - name: Build project
               run: npm run build
 
+            - name: Versioning the build
+              run: npm version patch
+
+            - name: Push the tags
+              run: git push —-tags origin development
+
             - name: Upload build artifacts
               uses: actions/upload-artifact@v3
               with:
@@ -57,6 +63,6 @@ jobs:
 
             - name: publish
               run: npm publish --access public
-              working-directory: dist
+              working-directory: ./
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
