@@ -26,6 +26,9 @@ jobs:
             - name: Install dependencies
               run: npm install
 
+            - name: Reset git dir
+              run: git reset --hard origin/development
+
             - name: Versioning the build
               run: npm version patch
 
