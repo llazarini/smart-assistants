@@ -44,15 +44,18 @@ export class ToolCall {
 	constructor({
 		toolCallId,
 		tool,
-		properties
+		properties,
+		toolReturn
 	}: {
-		toolCallId?: string;
 		tool: Tool;
 		properties: object;
+		toolCallId?: string;
+		toolReturn?: any;
 	}) {
 		this.tool = tool;
 		this.properties = properties;
 		this.toolCallId = toolCallId;
+		this.toolReturn = toolReturn;
 	}
 
 	async process() {

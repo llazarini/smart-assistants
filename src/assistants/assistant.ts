@@ -3,12 +3,9 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'url';
 import { AssistantLogger, PinoLogger } from './logger.js';
 import { Tool } from './tool.js';
-import {
-	LanguageModel,
-	Run,
-	Runnable
-} from '../language_models/language_model.js';
+import { LanguageModel } from '../language_models/language_model.js';
 import { ChatHistory, Message } from './chat_history.js';
+import { Run, Runnable } from './run.js';
 
 export class Assistant {
 	languageModel: LanguageModel;
@@ -48,6 +45,7 @@ export class Assistant {
 		this.logger = new PinoLogger(logLevel);
 		this.logger.level = logLevel;
 		this.chatHistory = chatHistory;
+		this.chatHistory?.setAssistant(this);
 	}
 
 	getTool(toolName: string): Tool {
@@ -96,6 +94,11 @@ export class Assistant {
 		return prompt;
 	}
 
+	/**
+	 * Respond a message
+	 * @param message
+	 * @returns
+	 */
 	async respond(message: string) {
 		const runnable = new Runnable({
 			message: new Message({ content: message, role: 'user' })
@@ -111,12 +114,18 @@ export class Assistant {
 		return lastRunnable?.message?.content || '';
 	}
 
+	/**
+	 * Process a run
+	 * @param run
+	 * @returns
+	 */
 	async processRun(run: Run) {
 		this.languageModel.setAssistant(this);
 		this.languageModel.setInstructions(this.getInstructions());
 
 		run = await this.languageModel.proccess(run);
 
+		// If have a chat history connected, save this run to it
 		if (this.chatHistory) {
 			this.chatHistory.saveRun(run);
 		}

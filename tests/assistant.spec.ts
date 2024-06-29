@@ -28,7 +28,7 @@ class AddToShoppingCart extends Tool {
 }
 
 test.group('Assistant', () => {
-	/*test('creating simple assistant', async ({ assert }) => {
+	test('creating simple assistant', async ({ assert }) => {
 		const memoryChatHistory = new MemoryChatHistory();
 		const assistant = new Assistant({
 			languageModel: new OpenAILanguageModel({
@@ -46,7 +46,7 @@ test.group('Assistant', () => {
 		console.log(await assistant.respond('Hey How are you?'));
 		console.log(await assistant.respond('Please call me Leonardo'));
 		console.log(await assistant.respond('What is my name?'));
-	});*/
+	});
 
 	test('creating an assistant with tools', async ({ assert }) => {
 		const assistant = new Assistant({
@@ -75,7 +75,7 @@ test.group('Assistant', () => {
 			)
 		);
 		console.log(await assistant.respond('Thank you!'));
-		/*
+
 		console.log(
 			await assistant.respond(
 				'Can you add an apple and a banana to the shopping cart?'
@@ -83,6 +83,6 @@ test.group('Assistant', () => {
 		);
 		console.log(
 			await assistant.respond('What I have in my shopping cart?')
-		);*/
+		);
 	});
 });

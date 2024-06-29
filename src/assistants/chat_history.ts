@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Run } from '../language_models/language_model.js';
+import { Assistant } from './assistant.js';
 
 export class Message {
 	id?: string;
@@ -24,10 +25,14 @@ export class Message {
 export class ChatHistory {
 	chatHistoryId: string;
 	runsHistory: Run[];
-
+	assistant?: Assistant;
 	constructor(data?: { chatHistoryId: string }) {
 		this.chatHistoryId = data?.chatHistoryId || uuidv4();
 		this.runsHistory = [];
+	}
+
+	async setAssistant(assistant: Assistant) {
+		this.assistant = assistant;
 	}
 
 	async getHistory(): Promise<Run[]> {
@@ -39,6 +44,9 @@ export class ChatHistory {
 	}
 }
 
+/**
+ * Simple memory chat history
+ */
 export class MemoryChatHistory extends ChatHistory {
 	async getHistory(): Promise<Run[]> {
 		return this.runsHistory;
