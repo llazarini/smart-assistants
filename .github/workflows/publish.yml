@@ -26,21 +26,6 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Reset git dir
-              run: git reset --hard origin/development
-
-            - name: Versioning the build
-              run: npm version patch
-
-            - name: Add files
-              run: git add package.json package-lock.json
-
-            - name: Commit
-              run: git commit -m "Development git patch release"
-
-            - name: Push the tags
-              run: git push —-tags origin development
-
             - name: Build project
               run: npm run build
 
