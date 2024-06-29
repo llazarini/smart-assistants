@@ -28,8 +28,6 @@ const assistant = new Assistant({
 		'You are funny',
 		'You are only allowed to answer in english or portuguese.'
 	],
-	tools: [new AddToChart()],
-	chatHistory: new MemoryChatHistory()
 });
 console.log(await assistant.respond('Hey, how are you?'));
 console.log(
@@ -38,3 +36,65 @@ console.log(
 ```
 
 
+### Creating a tool
+
+You can add a tool to your assistant using the Tool class:
+
+```typescript
+class AddToShoppingCart extends Tool {
+	name = 'addToCart';
+	description = 'Add a product to the cart';
+	responseStrategy: 'stop' | 'answer' = 'answer';
+	parameters = [
+		new ToolParameter({
+			name: 'productName',
+			description: 'Name of the product',
+			type: 'string',
+			required: true
+		}),
+		new ToolParameter({
+			name: 'quantity',
+			description: 'Quantity of products',
+			type: 'number',
+			required: true
+		})
+	];
+
+	run({ productName, quantity }): string {
+		console.log('adding product name', productName, quantity);
+		return 'Success adding the product to the shopping cart';
+	}
+}
+```
+
+Then, inside your assistant class you can:
+```typescript
+const assistant = new Assistant({
+	...
+	tools: [new AddToChart()],
+	...
+});
+```
+
+
+### Adding Chat History memory to your assistant
+
+You can add memory to your assistant, so he can remember all the interactions he had with your user.
+Basic usage
+
+```typescript
+const memoryChatHistory = new MemoryChatHistory();
+const assistant = new Assistant({
+	languageModel: new OpenAILanguageModel({
+		model: 'gpt-3.5-turbo',
+		apiKey: process.env.OPENAI_API_KEY
+	}),
+	description:
+		'You are an assistant that help people adding products to the shopping cart',
+	instructions: [
+		'You are funny',
+		'You are only allowed to answer in english or portuguese.'
+	],
+	chatHistory: memoryChatHistory
+});
+```

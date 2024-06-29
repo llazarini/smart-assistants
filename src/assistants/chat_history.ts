@@ -44,6 +44,9 @@ export class ChatHistory {
 	}
 }
 
+/**
+ * Simple memory chat history
+ */
 export class MemoryChatHistory extends ChatHistory {
 	async getHistory(): Promise<Run[]> {
 		return this.runsHistory;

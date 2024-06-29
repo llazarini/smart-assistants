@@ -3,9 +3,10 @@ import type {
 	ChatCompletionMessage,
 	ChatCompletionTool
 } from 'openai/src/resources/chat/completions.js';
-import { LanguageModel, Run, Runnable } from './language_model.js';
+import { LanguageModel } from './language_model.js';
 import { Message } from '../assistants/chat_history.js';
 import { Tool, ToolCall } from '../assistants/tool.js';
+import { Run, Runnable } from '../assistants/run.js';
 
 export class OpenAILanguageModel extends LanguageModel {
 	model: 'gpt-3.5-turbo' | 'gpt-4o' = 'gpt-3.5-turbo';
@@ -113,13 +114,12 @@ export class OpenAILanguageModel extends LanguageModel {
 			return [];
 		}
 
-		const getToolCallsExpectResponse = (runnable: Runnable): object[] => {
+		const getToolCalls = (runnable: Runnable): object[] => {
 			if (!runnable.toolCalls) {
 				return [];
 			}
 			const messages = [];
-			const toolCallsThatExpectResponse = runnable.toolCalls;
-			const toolCalls = toolCallsThatExpectResponse.map(item => {
+			const toolCalls = runnable.toolCalls.map(item => {
 				return {
 					id: item.toolCallId,
 					type: 'function',
@@ -133,7 +133,7 @@ export class OpenAILanguageModel extends LanguageModel {
 				role: 'assistant',
 				tool_calls: toolCalls
 			});
-			toolCallsThatExpectResponse.map(item => {
+			runnable.toolCalls.map(item => {
 				messages.push({
 					role: 'tool',
 					tool_call_id: item.toolCallId,
@@ -153,9 +153,7 @@ export class OpenAILanguageModel extends LanguageModel {
 			.map((run: Run) => {
 				return run.runnables.map(runnable => {
 					if (runnable.toolCalls?.length) {
-						messages = messages.concat(
-							getToolCallsExpectResponse(runnable)
-						);
+						messages = messages.concat(getToolCalls(runnable));
 						return;
 					}
 
