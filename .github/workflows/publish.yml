@@ -26,14 +26,14 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Build project
-              run: npm run build
-
             - name: Versioning the build
               run: npm version patch
 
             - name: Push the tags
               run: git push —-tags origin development
+
+            - name: Build project
+              run: npm run build
 
             - name: Upload build artifacts
               uses: actions/upload-artifact@v3
