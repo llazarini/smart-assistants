@@ -1,0 +1,51 @@
+name: Production Build and Deployment
+
+on:
+    push:
+        branches:
+            - development
+    pull_request:
+        branches:
+            - development
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [20.x]
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Build project
+              run: npm run build
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: build-artifact
+                  path: dist/**
+    deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v3
+              with:
+                  name: build-artifact
+                  path: dist
+
+            - name: 🚀 publish
+              run: npm publish --access public
+              working-directory: my-package
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
