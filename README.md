@@ -1,6 +1,6 @@
 ### Smart Assistants
 
-Create Smart LLM Assistants with Memory, Function calling and more to come.
+Create Smart LLM Assistants with Memory, Function calling and more to come. Inspired by phidata Python library.
 
 *The library and documentation is still in development*
 *I don't recommend using it in production yet*
@@ -17,6 +17,8 @@ npm install smart-assistants
 Basic usage
 
 ```typescript
+import { Assistant, OpenAILanguageModel } from 'smart-assistants'
+
 const assistant = new Assistant({
 	languageModel: new OpenAILanguageModel({
 		model: 'gpt-3.5-turbo',
@@ -41,6 +43,8 @@ console.log(
 You can add a tool to your assistant using the Tool class:
 
 ```typescript
+import { Tool, ToolParameter } from 'smart-assistants'
+
 class AddToShoppingCart extends Tool {
 	name = 'addToCart';
 	description = 'Add a product to the cart';
@@ -69,6 +73,7 @@ class AddToShoppingCart extends Tool {
 
 Then, inside your assistant class you can:
 ```typescript
+import { Assistant } from 'smart-assistants'
 const assistant = new Assistant({
 	...
 	tools: [new AddToChart()],
@@ -80,10 +85,12 @@ const assistant = new Assistant({
 ### Adding Chat History memory to your assistant
 
 You can add memory to your assistant, so he can remember all the interactions he had with your user.
-Basic usage
+Basic usage:
 
 ```typescript
-const memoryChatHistory = new MemoryChatHistory();
+import { MemoryChatHistory } from 'smart-assistants'
+
+
 const assistant = new Assistant({
 	languageModel: new OpenAILanguageModel({
 		model: 'gpt-3.5-turbo',
@@ -95,6 +102,9 @@ const assistant = new Assistant({
 		'You are funny',
 		'You are only allowed to answer in english or portuguese.'
 	],
-	chatHistory: memoryChatHistory
+	chatHistory: new MemoryChatHistory()
 });
 ```
+
+You can also customize a Chat History class to connect with your database. 
+You can extend the ChatHistory class and implement your own class.
