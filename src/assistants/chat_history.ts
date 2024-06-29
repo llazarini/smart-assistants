@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Run } from '../language_models/language_model.js';
 import { Assistant } from './assistant.js';
+import { Run } from './run.js';
 
 export class Message {
 	id?: string;
