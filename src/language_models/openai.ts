@@ -1,7 +1,8 @@
 import OpenAI from 'openai';
 import type {
 	ChatCompletionMessage,
-	ChatCompletionTool
+	ChatCompletionTool,
+	ChatCompletionCreateParamsBase
 } from 'openai/src/resources/chat/completions.js';
 import { LanguageModel } from './language_model.js';
 import { Message } from '../assistants/chat_history.js';
@@ -12,17 +13,21 @@ export class OpenAILanguageModel extends LanguageModel {
 	model: 'gpt-3.5-turbo' | 'gpt-4o' = 'gpt-3.5-turbo';
 	client: OpenAI;
 	run?: Run;
+	options?: ChatCompletionCreateParamsBase;
 
 	constructor({
 		model,
-		apiKey
+		apiKey,
+		options
 	}: {
 		model: 'gpt-3.5-turbo' | 'gpt-4o';
 		apiKey?: string;
+		options?: ChatCompletionCreateParamsBase;
 	}) {
 		super();
 
 		this.model = model;
+		this.options = options;
 		this.client = new OpenAI({
 			apiKey: apiKey || process.env.OPENAI_API_KEY
 		});
@@ -218,6 +223,7 @@ export class OpenAILanguageModel extends LanguageModel {
 			model: this.model,
 			// @ts-ignore
 			messages,
+			...this.options,
 			...(tools?.length ? { tools } : null)
 		});
 
